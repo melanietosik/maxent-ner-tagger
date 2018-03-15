@@ -1,0 +1,256 @@
+AB
+AK
+AL
+ALABAMA
+ALASKA
+AR
+ARIZONA
+ARKANSAS
+AZ
+Ak
+Al
+Alabama
+Alaska
+Alberta
+Ar
+Arizona
+Arkansas
+Az
+BC
+British Columbia
+CA
+CALIFORNIA
+CO
+COLORADO
+CONNECTICUT
+CT
+Ca
+California
+Co
+Colorado
+Connecticut
+Ct
+D. C.
+D.C.
+DC
+DE
+DELAWARE
+DISTRICT OF COLUMBIA
+Dc
+De
+Delaware
+District of Columbia
+FEDERATED STATES OF MICRONESIA
+FL
+FLORIDA
+Federated States of Micronesia
+Fl
+Florida
+GA
+GEORGIA
+Ga
+Georgia
+HAWAII
+HI
+Hawaii
+Hi
+I. Terr.
+I.Terr.
+IA
+ID
+IDAHO
+IL
+ILLINOIS
+IN
+INDIANA
+IOWA
+Ia
+Id
+Idaho
+Il
+Illinois
+In
+Indiana
+Iowa
+KANSAS
+KENTUCKY
+KS
+KY
+Kansas
+Kentucky
+Ks
+Ky
+LA
+LOUISIANA
+La
+Louisiana
+MA
+MAINE
+MARYLAND
+MASSACHUSETTS
+MB
+MD
+ME
+MI
+MICHIGAN
+MINNESOTA
+MISSISSIPPI
+MISSOURI
+MN
+MO
+MONTANA
+MS
+MT
+Ma
+Maine
+Manitoba
+Maryland
+Massachusetts
+Md
+Me
+Mi
+Michigan
+Minnesota
+Mississippi
+Missouri
+Mn
+Mo
+Montana
+Ms
+Mt
+N. Dak.
+N. H.
+N. J.
+N. Mex.
+N. Y.
+N.Dak.
+N.H.
+N.J.
+N.Mex.
+N.Y.
+NB
+NC
+ND
+NE
+NEBRASKA
+NEVADA
+NEW HAMPSHIRE
+NEW JERSEY
+NEW MEXICO
+NEW YORK
+NF
+NH
+NJ
+NM
+NORTH CAROLINA
+NORTH DAKOTA
+NS
+NT
+NU
+NV
+NY
+Nc
+Nd
+Ne
+Nebraska
+Nevada
+New Brunswick
+New Hampshire
+New Jersey
+New Mexico
+New York
+Newfoundland
+Nh
+Nj
+Nm
+North Carolina
+North Dakota
+Nova Scotia
+Nunavut
+Nv
+Ny
+OH
+OHIO
+OK
+OKLAHOMA
+ON
+OR
+OREGON
+Oh
+Ohio
+Ok
+Oklahoma
+Ontario
+Or
+Oregon
+PA
+PE
+PENNSYLVANIA
+PR
+Pa
+Pennsylvania
+Pr
+Prince Edward
+Puerto Rico
+QB
+Quebec
+RHODE ISLAND
+RI
+Rhode Island
+Ri
+S. Dak.
+S.Dak.
+SC
+SD
+SK
+SOUTH CAROLINA
+SOUTH DAKOTA
+Sasketchewan
+Sc
+Sd
+South Carolina
+South Dakota
+TENNESSEE
+TEXAS
+TN
+TX
+Tennessee
+Texas
+Tn
+Tx
+U. Terr.
+UT
+UTAH
+Ut
+Utah
+VA
+VERMONT
+VIRGINIA
+VT
+Va
+Vermont
+Virginia
+Vt
+W. V.
+W. Vir.
+W.V.
+W.Vir.
+WA
+WASHINGTON
+WEST VIRGINIA
+WI
+WISCONSIN
+WV
+WY
+WYOMING
+Wa
+Washington
+Washington DC
+West Virginia
+Wi
+Wisconsin
+Wv
+Wy
+Wyoming
+YK
+Yukon
