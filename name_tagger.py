@@ -1,3 +1,4 @@
+import os
 import pickle
 import sys
 
@@ -25,11 +26,12 @@ class FeatureBuilder:
             nlp.vocab,
             words=sent,
         )
+        self.idx = {tok.idx: tok.text for tok in self.doc}
 
         self.use = [
 
-            "tok_prev",
-            "tok_next",
+            # "tok_prev",
+            # "tok_next",
 
             "is_title",
 
@@ -41,11 +43,13 @@ class FeatureBuilder:
             # "is_lower",
             # "is_upper",
 
+            "orth_",
             "lemma_",
-            "lower_",
-            "norm_",
+            # "lower_",
+            # "norm_",
 
             "shape_",
+
             "prefix_",
             "suffix_",
 
@@ -59,6 +63,7 @@ class FeatureBuilder:
 
             # "vector_norm",
 
+            # "gaz",
         ]
 
         assert(len(self.sent) == len(self.doc))
@@ -67,6 +72,43 @@ class FeatureBuilder:
         for build in self.use:
             for tok in self.doc:
                 getattr(self, build)(tok)
+
+        # Add context features
+        for tok in self.doc:
+
+            for x in self.use:
+
+                # Token - 1
+                if tok.i == 0:
+                    self.feat[tok.i]["prev-1_" + x] = "-BOS-"
+                else:
+                    self.feat[tok.i]["prev-1_" + x] = self.feat[tok.i - 1][x]
+
+                # Token - 2
+                if (tok.i == 0) or (tok.i == 1):
+                    self.feat[tok.i]["prev-2_" + x] = "-BOS-"
+                else:
+                    self.feat[tok.i]["prev-2_" + x] = self.feat[tok.i - 2][x]
+
+                # Token + 1
+                if tok.i == len(self.sent) - 1:
+                    self.feat[tok.i]["next+1_" + x] = "-EOS-"
+                else:
+                    self.feat[tok.i]["next+1_" + x] = self.feat[tok.i + 1][x]
+
+                # Token + 2
+                if (tok.i == len(self.sent) - 2) or (tok.i == len(self.sent) - 1):
+                    self.feat[tok.i]["next+2" + x] = "-EOS-"
+                else:
+                    self.feat[tok.i]["next+2" + x] = self.feat[tok.i + 2][x]
+
+            self.feat[tok.i]["prev_model_tag"] = "@@"
+
+    def gaz(self, tok):
+        for key in gaz:
+            self.feat[tok.i][key] = False
+            if tok.text in gaz[key]:
+                self.feat[tok.i][key] = True
 
     """ Context features """
     def tok_prev(self, tok):
@@ -107,6 +149,9 @@ class FeatureBuilder:
         self.feat[tok.i]["like_num"] = tok.like_num
 
     """ Token features """
+    def orth_(self, tok):
+        self.feat[tok.i]["orth_"] = tok.orth_
+
     def lemma_(self, tok):
         self.feat[tok.i]["lemma_"] = tok.lemma_
 
@@ -146,6 +191,19 @@ class FeatureBuilder:
     def vector_norm(self, tok):
         self.feat[tok.i]["vector_norm"] = tok.vector_norm
 
+
+def load_gaz():
+
+    global gaz
+    gaz = {}
+
+    for file in os.listdir("gaz"):
+
+        if not file.endswith(".txt"):
+            continue
+
+        key = file[:-4]
+        gaz[key] = set([line.strip() for line in open("gaz/" + file, "r")])
 
 
 def build_features(split):
@@ -198,23 +256,20 @@ def build_features(split):
 
 
 def train():
+    """
+    Train and write model
+    """
+    df = pd.read_csv(settings.FILE["train"]["feat"], keep_default_na=False)
 
-    df_train = pd.read_csv(settings.FILE["train"]["feat"], keep_default_na=False)
-
-    features = list(df_train)
+    features = list(df)
     label = "tag"
     features.remove(label)
 
     vec = DictVectorizer()
 
-    X_train = vec.fit_transform(df_train[features].to_dict("records"))
-    y_train = df_train[label].values
+    X_train = vec.fit_transform(df[features].to_dict("records"))
+    y_train = df[label].values
     print(X_train.shape, y_train.shape)
-
-    df_dev = pd.read_csv(settings.FILE["dev"]["feat"], keep_default_na=False)
-    X_dev = vec.transform(df_dev[features].to_dict("records"))
-    y_dev = df_dev[label].values
-    print(X_dev.shape, y_dev.shape)
 
     logreg = LogisticRegression(
         multi_class="multinomial",
@@ -222,9 +277,33 @@ def train():
     )
 
     logreg.fit(X_train, y_train)
-    y_pred = logreg.predict(X_dev)
 
-    words = df_dev["tok"].values
+    with open(settings.MODEL_FP, "wb") as model_file:
+        pickle.dump(logreg, model_file)
+
+    with open(settings.VECTORIZER_FP, "wb") as vectorizer_file:
+        pickle.dump(vec, vectorizer_file)
+
+
+def dev():
+
+    df = pd.read_csv(settings.FILE["dev"]["feat"], keep_default_na=False)
+
+    features = list(df)
+    label = "tag"
+    features.remove(label)
+
+    model = pickle.load(open(settings.MODEL_FP, "rb"))
+    vec = pickle.load(open(settings.VECTORIZER_FP, "rb"))
+
+    # Get model tags as features
+    X_dev = vec.transform(df[features].to_dict("records"))
+    y_dev = df[label].values
+    print(X_dev.shape, y_dev.shape)
+
+    y_pred = model.predict(X_dev)
+
+    words = df["tok"].values
 
     with open("dev.name", "w") as out:
         for tok, tag in zip(words, y_pred):
@@ -235,13 +314,48 @@ def train():
             out.write(tok + "\t" + tag + "\n")
 
 
+def add_prev_model_tag(split):
+
+    if split not in ("train", "dev", "test"):
+        print("Error: {0} is not a valid split, use train|dev|test")
+        sys.exit(1)
+
+    model = pickle.load(open(settings.MODEL_FP, "rb"))
+    vec = pickle.load(open(settings.VECTORIZER_FP, "rb"))
+
+    df = pd.read_csv(settings.FILE[split]["feat"], keep_default_na=False)
+
+    features = list(df)
+    label = "tag"
+    features.remove(label)
+
+    X = vec.transform(df[features].to_dict("records"))
+
+    y_pred = model.predict(X)
+
+    print(type(y_pred))
+
+    y_prev = ["-BOS-"] + list(y_pred[:-1])
+    assert(len(y_prev) == len(df))
+
+    df.loc[:, "prev_model_tag"] = y_prev
+    df.to_csv(settings.FILE[split]["feat"], index=False)
+
+
 def main():
 
+    #load_gaz()
     build_features("train")
     build_features("dev")
-    # build_features("test")
 
     train()
+
+    add_prev_model_tag("train")
+    add_prev_model_tag("dev")
+
+    train()
+    
+    dev()
 
 
 if __name__ == "__main__":

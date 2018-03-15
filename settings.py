@@ -20,3 +20,6 @@ FILE = {
         "tag": "CoNLL/CONLL_test.pos-chunk-name.tag.name",
     },
 }
+
+MODEL_FP = "model.pickle"
+VECTORIZER_FP = "vectorizer.pickle"
