@@ -1,0 +1,33 @@
+# 1 (no additional features)
+
+48990 out of 51578 tags correct
+  accuracy: 94.98
+5917 groups in key
+6339 groups in response
+4111 correct groups
+  precision: 64.85
+  recall:    69.48
+  F1:        67.09
+
+# 2 (add left and right token)
+
+49694 out of 51578 tags correct
+  accuracy: 96.35
+5917 groups in key
+5965 groups in response
+4577 correct groups
+  precision: 76.73
+  recall:    77.35
+  F1:        77.04
+
+# 3 (is_title)
+
+49840 out of 51578 tags correct
+  accuracy: 96.63
+5917 groups in key
+5812 groups in response
+4597 correct groups
+  precision: 79.09
+  recall:    77.69
+  F1:        78.39
+
