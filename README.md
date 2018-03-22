@@ -33,7 +33,7 @@ Before running the code, you need to create a [virtual environment](https://virt
 [maxent-ner-tagger]$ source env/bin/activate
 [maxent-ner-tagger]$ pip install -U spacy
 [maxent-ner-tagger]$ python -m spacy download en  # Download spaCy's English language model files
-[maxent-ner-tagger]$ pip -r requirements.txt
+[maxent-ner-tagger]$ pip install -r requirements.txt
 ```
 
 ### Run the tagger
