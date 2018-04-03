@@ -1,11 +1,14 @@
 import pickle
 import sys
 
+import numpy as np
 import pandas as pd
 import spacy
 
 import score
 import settings
+
+from gensim.models import KeyedVectors
 
 from sklearn.feature_extraction import DictVectorizer
 from sklearn.linear_model import LogisticRegression
@@ -13,6 +16,9 @@ from sklearn.linear_model import LogisticRegression
 from spacy.tokens import Doc
 
 nlp = spacy.load('en')
+
+global dims
+dims = 100
 
 
 class FeatureBuilder:
@@ -66,6 +72,8 @@ class FeatureBuilder:
             # "head",
             # "left_edge",
             # "right_edge",
+
+            "wv",
         ]
 
         assert(len(self.sent) == len(self.doc))
@@ -75,9 +83,43 @@ class FeatureBuilder:
             for tok in self.doc:
                 getattr(self, x)(tok)
 
+        # # Hack for handling vector features
+        # if "wv" in self.use:
+        #     self.use.remove("wv")
+        #     for i in range(dims):
+        #         self.use.append("wv_{0}".format(i))
+
         # Add context token features
         for tok in self.doc:
+
             for x in self.use:
+
+                # Hack for handling vector features
+                if x.startswith("wv"):
+
+                    # # Token - 1
+                    # if tok.i == 0:
+                    #     self.feat[tok.i]["prev-1_" + x] = 0.0
+                    # else:
+                    #     self.feat[tok.i]["prev-1_" + x] = self.feat[tok.i - 1][x]
+                    # # Token - 2
+                    # if (tok.i == 0) or (tok.i == 1):
+                    #     self.feat[tok.i]["prev-2_" + x] = 0.0
+                    # else:
+                    #     self.feat[tok.i]["prev-2_" + x] = self.feat[tok.i - 2][x]
+                    # # Token + 1
+                    # if tok.i == len(self.sent) - 1:
+                    #     self.feat[tok.i]["next+1_" + x] = 0.0
+                    # else:
+                    #     self.feat[tok.i]["next+1_" + x] = self.feat[tok.i + 1][x]
+                    # # Token + 2
+                    # if (tok.i == len(self.sent) - 2) or (tok.i == len(self.sent) - 1):
+                    #     self.feat[tok.i]["next+2_" + x] = 0.0
+                    # else:
+                    #     self.feat[tok.i]["next+2_" + x] = self.feat[tok.i + 2][x]
+
+                    continue
+
                 # Token - 1
                 if tok.i == 0:
                     self.feat[tok.i]["prev-1_" + x] = "-BOS-"
@@ -95,9 +137,9 @@ class FeatureBuilder:
                     self.feat[tok.i]["next+1_" + x] = self.feat[tok.i + 1][x]
                 # Token + 2
                 if (tok.i == len(self.sent) - 2) or (tok.i == len(self.sent) - 1):
-                    self.feat[tok.i]["next+2" + x] = "-EOS-"
+                    self.feat[tok.i]["next+2_" + x] = "-EOS-"
                 else:
-                    self.feat[tok.i]["next+2" + x] = self.feat[tok.i + 2][x]
+                    self.feat[tok.i]["next+2_" + x] = self.feat[tok.i + 2][x]
 
     def idx(self, tok):
         """
@@ -243,6 +285,19 @@ class FeatureBuilder:
         """
         self.feat[tok.i]["right_edge"] = tok.right_edge.text
 
+    def wv(self, tok):
+        """
+        GloVe word embeddings
+        """
+        # Get GloVe or zero vector
+        if tok.lower_ in wv.vocab:
+            vec = wv[tok.lower_]
+        else:
+            vec = np.zeros(dims)
+        # Generate one numerical feature per dimension
+        for idx in range(dims):
+            self.feat[tok.i]["wv_{0}".format(idx)] = float(vec[idx])
+
 
 def build_features(split):
     """
@@ -272,7 +327,13 @@ def build_features(split):
                 data.append([feats[x] for x in cols])
 
             # Handle newline
-            data.append(["-NEWLINE-"] * len(cols))
+            newline = []
+            for x in cols:
+                if "wv" in x:
+                    newline.append(0.0)
+                else:
+                    newline.append("-NEWLINE-")
+            data.append(newline)
 
             # Reset
             sent = []
@@ -383,6 +444,13 @@ def main():
     """
     main()
     """
+    wv_fp = settings.WV_DIR + "word2vec.6B.{0}d.txt".format(dims)
+    print("Loading word2vec file: {0}\n".format(wv_fp))
+
+    # Load word vectors
+    global wv
+    wv = KeyedVectors.load_word2vec_format(wv_fp, binary=False)
+
     # Build features for each data split
     for split in ("train", "dev", "test"):
         build_features(split)

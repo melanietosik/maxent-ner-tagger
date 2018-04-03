@@ -195,3 +195,58 @@
   precision: 85.80
   recall:    86.99
   F1:        86.39
+
+##### CoNLL + ['is_title', 'lemma_', 'lower_', 'norm_', 'orth_', 'prefix_', 'shape_', 'suffix_'] + context + 50d
+
+50759 out of 51578 tags correct
+  accuracy: 98.41
+5917 groups in key
+6061 groups in response
+5332 correct groups
+  precision: 87.97
+  recall:    90.11
+  F1:        89.03
+
+##### CoNLL + ['is_title', 'lemma_', 'lower_', 'norm_', 'orth_', 'prefix_', 'shape_', 'suffix_'] + context + 100d
+
+50767 out of 51578 tags correct
+  accuracy: 98.43
+5917 groups in key
+6074 groups in response
+5355 correct groups
+  precision: 88.16
+  recall:    90.50
+  F1:        89.32
+
+##### CoNLL + ['is_title', 'lemma_', 'lower_', 'norm_', 'orth_', 'prefix_', 'shape_', 'suffix_'] + context + 200d
+
+50742 out of 51578 tags correct
+  accuracy: 98.38
+5917 groups in key
+6091 groups in response
+5341 correct groups
+  precision: 87.69
+  recall:    90.27
+  F1:        88.96
+
+##### CoNLL + ['is_title', 'lemma_', 'lower_', 'norm_', 'orth_', 'prefix_', 'shape_', 'suffix_'] + context + 300d
+
+50737 out of 51578 tags correct
+  accuracy: 98.37
+5917 groups in key
+6074 groups in response
+5339 correct groups
+  precision: 87.90
+  recall:    90.23
+  F1:        89.05
+
+##### CoNLL + ['is_title', 'lemma_', 'lower_', 'norm_', 'orth_', 'prefix_', 'shape_', 'suffix_'] + context + 100d + context
+
+50626 out of 51578 tags correct
+  accuracy: 98.15
+5917 groups in key
+6054 groups in response
+5231 correct groups
+  precision: 86.41
+  recall:    88.41
+  F1:        87.39

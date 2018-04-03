@@ -24,7 +24,7 @@ After model training, the program also writes a serialized model and vectorizer 
 
 Finally, the program writes two tagged `.name` files to the [`output/`](https://github.com/melanietosik/maxent-ner-tagger/tree/master/output) directory, one for the development set ([`dev.name`](https://github.com/melanietosik/maxent-ner-tagger/blob/master/output/dev.name)) and one for the test set ([`test.name`](https://github.com/melanietosik/maxent-ner-tagger/blob/master/output/test.name)). All settings can be adjusted by editing the paths specified in [`scripts/settings.py`](https://github.com/melanietosik/maxent-ner-tagger/blob/master/scripts/settings.py).
 
-### Install requiremements
+### Installation requiremements
 
 Before running the code, you need to create a [virtual environment](https://virtualenv.pypa.io/en/stable/) and install the required Python dependencies:
 
@@ -162,12 +162,152 @@ A breakdown of the experimental feature sets and corresponding _group accuracies
 | CoNLL + `dep_`, `head`, `is_title`, `left_edge`, `lemma_`, `lower_`, `norm_`, `orth_`, `pos_`, `right_edge`, `shape_`, `tag_` + context    | P: 85.64<br> R: 87.07<br> **F1: 86.35** |
 | CoNLL + `head`, `is_title`, `left_edge`, `lemma_`, `lower_`, `norm_`, `orth_`, `right_edge`, `shape_` + context                            | P: 85.90<br> R: 86.92<br> **F1: 86.41** |
 | CoNLL + `is_title`, `lemma_`, `lower_`, `norm_`, `orth_`, `shape_`] + context                                                              | P: 85.75<br> R: 86.51<br> **F1: 86.13** |
-| **CoNLL + `is_title`, `lemma_`, `lower_`, `norm_`, `orth_`, `prefix_`, `shape_`, `suffix_` + context**                                       | P: 85.91<br> R: 87.21<br> **F1: 86.56** |
+| **CoNLL + `is_title`, `lemma_`, `lower_`, `norm_`, `orth_`, `prefix_`, `shape_`, `suffix_` + context**                                     | P: 85.91<br> R: 87.21<br> **F1: 86.56** |
 | CoNLL + `is_title`, `lemma_`, `orth_`, `prefix_`, `shape_`, `suffix_` + context                                                            | P: 85.80<br> R: 86.99<br> **F1: 86.39** |
 
 Overall, I found that the word itself and its various normalized word forms (exact, lemma, lowercased, normalized) were very helpful indicators for NER tagging. In addition, including whether or not the token was written in title case and its general shape (e.g. `Xxxx` or `dd`) improved model performance as well. Finally, I was able to achieve a **F1 score of 86.56** on the development set by incorporating context token features as well.
 
 ### Test set
 
-The tagged output file for the test is written to [`output/test.name`](https://github.com/melanietosik/maxent-ner-tagger/blob/master/output/test.name). To score the test file directly after model training, make sure the tagged gold file exists at `CoNLL/CONLL_test.name` and comment in lines `402-404` in `scripts/name_tagger.py`. Otherwise you can just use the original scorer script directly with the tagged output file.
+The tagged output file for the test is written to [`output/test.name`](https://github.com/melanietosik/maxent-ner-tagger/blob/master/output/test.name). To score the test file directly after model training, make sure the tagged gold file exists at `CoNLL/CONLL_test.name` and comment out the relevant lines below `"# Get score on test data"` in [`scripts/name_tagger.py`](https://github.com/melanietosik/maxent-ner-tagger/blob/master/scripts/name_tagger.py). Otherwise you can just use the original scorer script directly with the tagged output file.
 
+## Word embeddings
+
+As a follow-up task, I worked on enhancing the named-entity tagger by adding [word embeddings](https://en.wikipedia.org/wiki/Word_embedding) as input features to the classifier as well. Specifically, I made use of a [publicly available set of GloVe vectors](https://nlp.stanford.edu/projects/glove/) to obtain vector representations for each token in the CoNLL dataset.
+
+### Gensim, GloVe, and word2vec
+
+[Gensim](https://radimrehurek.com/gensim/) is a robust, open-source vector space modeling toolkit implemented in Python. To install, run:
+
+```
+(env) [maxent-ner-tagger]$ pip install gensim
+```
+
+In order to use GloVe vectors with Gensim, we first have to convert the GloVe vectors to the [word2vec](https://code.google.com/archive/p/word2vec/) format it expects. Gensim provides a convencience script called [`glove2word2vec`](https://radimrehurek.com/gensim/scripts/glove2word2vec.html) to do just that:
+
+```
+(env) [maxent-ner-tagger]$ python -m gensim.scripts.glove2word2vec --input data/glove/glove.6B.50d.txt --output data/word2vec/word2vec.6B.50d.txt
+2018-04-03 15:45:37,757 - glove2word2vec - INFO - running /Users/.../env/lib/python3.6/site-packages/gensim/scripts/glove2word2vec.py --input data/glove/glove.6B.50d.txt --output data/word2vec/word2vec.6B.50d.txt
+2018-04-03 15:45:37,987 - glove2word2vec - INFO - converting 400000 vectors from data/glove/glove.6B.50d.txt to data/word2vec/word2vec.6B.50d.txt
+2018-04-03 15:45:38,660 - glove2word2vec - INFO - Converted model with 400000 vectors and 50 dimensions
+```
+
+Since the input and output files are relatively large, only the Glove and word2vec files for 100-dimensional vectors are included in the submission. All other word2vec files can easily be regenerated as shown above.
+
+### Run
+
+The program can be run the same way as before:
+
+```
+(env) [maxent-ner-tagger]$ python scripts/name_tagger.py
+```
+
+The number of dimensions is specified as a global variable at the top of the [`scripts/name_tagger.py`](https://github.com/melanietosik/maxent-ner-tagger/blob/master/scripts/name_tagger.py) file. Make sure you generate a `data/word2vec/` directory that contains at least one of the following files (`word2vec.6B.100d.txt`) before you run the program:
+
+```
+(env) [maxent-ner-tagger]$ ls data/word2vec
+word2vec.6B.100d.txt word2vec.6B.200d.txt word2vec.6B.300d.txt word2vec.6B.50d.txt
+```
+
+Again, you should start seeing output pretty much immediately. It takes about 8 minutes to load the vectors, regenerate the features, and retrain the model. Please note that **all output files will be over-written** with each run.
+
+```
+(env) [maxent-ner-tagger]$ python scripts/name_tagger.py
+Loading word2vec file: data/word2vec/word2vec.6B.100d.txt
+
+Generating train features...
+Lines processed:        0
+Lines processed:    10000
+Lines processed:    20000
+Lines processed:    30000
+Lines processed:    40000
+Lines processed:    50000
+Lines processed:    60000
+Lines processed:    70000
+Lines processed:    80000
+Lines processed:    90000
+Lines processed:   100000
+Lines processed:   110000
+Lines processed:   120000
+Lines processed:   130000
+Lines processed:   140000
+Lines processed:   150000
+Lines processed:   160000
+Lines processed:   170000
+Lines processed:   180000
+Lines processed:   190000
+Lines processed:   200000
+Lines processed:   210000
+
+Writing output file: CoNLL/CONLL_train.pos-chunk-name.feat.csv
+
+Generating dev features...
+Lines processed:        0
+Lines processed:    10000
+Lines processed:    20000
+Lines processed:    30000
+Lines processed:    40000
+Lines processed:    50000
+
+Writing output file: CoNLL/CONLL_dev.pos-chunk-name.feat.csv
+
+Generating test features...
+Lines processed:        0
+Lines processed:    10000
+Lines processed:    20000
+Lines processed:    30000
+Lines processed:    40000
+Lines processed:    50000
+
+Writing output file: CoNLL/CONLL_test.pos-chunk-name.feat.csv
+
+Training model...
+X (219554, 449594)
+y (219554,)
+
+Tagging dev...
+X (55044, 449594)
+y (55044,)
+
+Writing output file: output/dev.name
+
+Tagging test...
+X (50350, 449594)
+y (50350,)
+
+Writing output file: output/test.name
+
+Scoring development set...
+50767 out of 51578 tags correct
+  accuracy: 98.43
+5917 groups in key
+6074 groups in response
+5355 correct groups
+  precision: 88.16
+  recall:    90.50
+  F1:        89.32
+
+python scripts/name_tagger.py  493.26s user 27.88s system 104% cpu 8:18.47 total
+```
+
+### Results
+
+As before, I tested the effect of adding the word vectors on the development set. For all experiments, I kept the best-performing set of features as determined above:
+
+- `is_title`
+- `orth_`, `lemma_`, `lower_`, `norm_`
+- `shape_`
+- `prefix_`, `suffix_`
+
+I addition, I tried word vectors of varying dimensionality (`50d`, `100d`, `200d`, `300d`), with and without including word vectors for context tokens.
+
+| Feature set                                                            |                            Accuracy |
+|:-----------------------------------------------------------------------|------------------------------------:|
+| CoNLL + best-performing token features + context                       | P: 85.91<br> R: 87.21<br> **F1: 86.56** |
+| CoNLL + best-performing token features + context + `50d`               | P: 87.97<br> R: 90.11<br> **F1: 89.03** |
+| **CoNLL + best-performing token features + context + `100d`**          | P: 88.16<br> R: 90.50<br> **F1: 89.32** |
+| CoNLL + best-performing token features + context + `200d`              | P: 87.69<br> R: 90.27<br> **F1: 88.96** |
+| CoNLL + best-performing token features + context + `300d`              | P: 87.90<br> R: 90.23<br> **F1: 89.05** |
+| CoNLL + best-performing token features + context + `100d` + context    | P: 86.41<br> R: 88.41<br> **F1: 87.39** |
+
+On the development set, F1 scores improved by 2 to 3 points over the baseline model when using 100-dimensional GloVe embeddings. Adding word vector features for context tokens as well worsened the results. The best model using CoNLL features, best-performing token features, context features, and token word embeddings resulted in a **F1 score of 89.32** on the development set.

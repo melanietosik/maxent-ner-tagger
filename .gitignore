@@ -2,3 +2,7 @@ __pycache__/
 env/
 doc/
 *.zip
+data/glove/
+data/word2vec/
+CoNLL/*.feat.csv
+
