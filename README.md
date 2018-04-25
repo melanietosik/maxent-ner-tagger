@@ -31,9 +31,9 @@ Before running the code, you need to create a [virtual environment](https://virt
 ```
 [maxent-ner-tagger]$ virtualenv -p python3 env
 [maxent-ner-tagger]$ source env/bin/activate
-[maxent-ner-tagger]$ pip install -U spacy
-[maxent-ner-tagger]$ python -m spacy download en  # Download spaCy's English language model files
-[maxent-ner-tagger]$ pip install -r requirements.txt
+(env)[maxent-ner-tagger]$ pip install -U spacy
+(env)[maxent-ner-tagger]$ python -m spacy download en  # Download spaCy's English language model files
+(env)[maxent-ner-tagger]$ pip install -r requirements.txt
 ```
 
 ### Run the tagger
@@ -41,13 +41,13 @@ Before running the code, you need to create a [virtual environment](https://virt
 To **(re-)run the tagger**, in the root directory of the project, run:
 
 ```
-(env) [maxent-ner-tagger]$ python scripts/name_tagger.py
+(env)[maxent-ner-tagger]$ python scripts/name_tagger.py
 ```
 
 You should start seeing output pretty much immediately. It takes about 5 minutes to regenerate the features and retrain the model. Please note that **all output files will be over-written** with each run.
 
 ```
-(env) [maxent-ner-tagger]$ python scripts/name_tagger.py
+(env)[maxent-ner-tagger]$ python scripts/name_tagger.py
 Generating train features...
 Lines processed:        0
 Lines processed:    10000
@@ -180,13 +180,13 @@ As a follow-up task, I worked on enhancing the named-entity tagger by adding [wo
 [Gensim](https://radimrehurek.com/gensim/) is a robust, open-source vector space modeling toolkit implemented in Python. To install, run:
 
 ```
-(env) [maxent-ner-tagger]$ pip install gensim
+(env)[maxent-ner-tagger]$ pip install gensim
 ```
 
 In order to use GloVe vectors with Gensim, we first have to convert the GloVe vectors to the [word2vec](https://code.google.com/archive/p/word2vec/) format it expects. Gensim provides a convencience script called [`glove2word2vec`](https://radimrehurek.com/gensim/scripts/glove2word2vec.html) to do just that:
 
 ```
-(env) [maxent-ner-tagger]$ python -m gensim.scripts.glove2word2vec --input data/glove/glove.6B.50d.txt --output data/word2vec/word2vec.6B.50d.txt
+(env)[maxent-ner-tagger]$ python -m gensim.scripts.glove2word2vec --input data/glove/glove.6B.50d.txt --output data/word2vec/word2vec.6B.50d.txt
 2018-04-03 15:45:37,757 - glove2word2vec - INFO - running /Users/.../env/lib/python3.6/site-packages/gensim/scripts/glove2word2vec.py --input data/glove/glove.6B.50d.txt --output data/word2vec/word2vec.6B.50d.txt
 2018-04-03 15:45:37,987 - glove2word2vec - INFO - converting 400000 vectors from data/glove/glove.6B.50d.txt to data/word2vec/word2vec.6B.50d.txt
 2018-04-03 15:45:38,660 - glove2word2vec - INFO - Converted model with 400000 vectors and 50 dimensions
@@ -199,20 +199,20 @@ Since the input and output files are relatively large, only the Glove and word2v
 The program can be run the same way as before:
 
 ```
-(env) [maxent-ner-tagger]$ python scripts/name_tagger.py
+(env)[maxent-ner-tagger]$ python scripts/name_tagger.py
 ```
 
 The number of dimensions is specified as a global variable at the top of the [`scripts/name_tagger.py`](https://github.com/melanietosik/maxent-ner-tagger/blob/master/scripts/name_tagger.py) file. Make sure you generate a `data/word2vec/` directory that contains at least one of the following files (`word2vec.6B.100d.txt`) before you run the program:
 
 ```
-(env) [maxent-ner-tagger]$ ls data/word2vec
+(env)[maxent-ner-tagger]$ ls data/word2vec
 word2vec.6B.100d.txt word2vec.6B.200d.txt word2vec.6B.300d.txt word2vec.6B.50d.txt
 ```
 
 Again, you should start seeing output pretty much immediately. It takes about 8 minutes to load the vectors, regenerate the features, and retrain the model. Please note that **all output files will be over-written** with each run.
 
 ```
-(env) [maxent-ner-tagger]$ python scripts/name_tagger.py
+(env)[maxent-ner-tagger]$ python scripts/name_tagger.py
 Loading word2vec file: data/word2vec/word2vec.6B.100d.txt
 
 Generating train features...
