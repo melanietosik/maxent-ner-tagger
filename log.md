@@ -250,3 +250,58 @@
   precision: 86.41
   recall:    88.41
   F1:        87.39
+
+##### CoNLL + ['is_title', 'lemma_', 'lower_', 'norm_', 'orth_', 'prefix_', 'shape_', 'suffix_'] + context + 100d + binarization
+
+50584 out of 51578 tags correct
+  accuracy: 98.07
+5917 groups in key
+6133 groups in response
+5209 correct groups
+  precision: 84.93
+  recall:    88.03
+  F1:        86.46
+
+##### CoNLL + ['is_title', 'lemma_', 'lower_', 'norm_', 'orth_', 'prefix_', 'shape_', 'suffix_'] + context + 50d + binarization
+
+50620 out of 51578 tags correct
+  accuracy: 98.14
+5917 groups in key
+6074 groups in response
+5230 correct groups
+  precision: 86.10
+  recall:    88.39
+  F1:        87.23
+
+##### CoNLL + ['is_title', 'lemma_', 'lower_', 'norm_', 'orth_', 'prefix_', 'shape_', 'suffix_'] + context + kmeans cluster IDs (100d, k=1000)
+
+50750 out of 51578 tags correct
+  accuracy: 98.39
+5917 groups in key
+6001 groups in response
+5328 correct groups
+  precision: 88.79
+  recall:    90.05
+  F1:        89.41
+
+##### CoNLL + ['is_title', 'lemma_', 'lower_', 'norm_', 'orth_', 'prefix_', 'shape_', 'suffix_'] + context + kmeans cluster IDs (300d, k=3000)
+
+50682 out of 51578 tags correct
+  accuracy: 98.26
+5917 groups in key
+6007 groups in response
+5276 correct groups
+  precision: 87.83
+  recall:    89.17
+  F1:        88.49
+
+##### CoNLL + ['is_title', 'lemma_', 'lower_', 'norm_', 'orth_', 'prefix_', 'shape_', 'suffix_'] + context + kmeans cluster IDs (100d, k=1000) + context
+
+50822 out of 51578 tags correct
+  accuracy: 98.53
+5917 groups in key
+6045 groups in response
+5397 correct groups
+  precision: 89.28
+  recall:    91.21
+  F1:        90.24

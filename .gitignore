@@ -4,5 +4,6 @@ doc/
 *.zip
 data/glove/
 data/word2vec/
+data/features.txt
 CoNLL/*.feat.csv
 

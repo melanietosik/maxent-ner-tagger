@@ -22,5 +22,6 @@ FILE = {
 
 MODEL_FP = "data/model.pickle"
 VECTORIZER_FP = "data/vectorizer.pickle"
+FEATURE_NAMES_FP = "data/features.txt"
 
 WV_DIR = "data/word2vec/"

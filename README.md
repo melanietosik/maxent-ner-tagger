@@ -31,9 +31,9 @@ Before running the code, you need to create a [virtual environment](https://virt
 ```
 [maxent-ner-tagger]$ virtualenv -p python3 env
 [maxent-ner-tagger]$ source env/bin/activate
-(env)[maxent-ner-tagger]$ pip install -U spacy
-(env)[maxent-ner-tagger]$ python -m spacy download en  # Download spaCy's English language model files
-(env)[maxent-ner-tagger]$ pip install -r requirements.txt
+(env) [maxent-ner-tagger]$ pip install -U spacy
+(env) [maxent-ner-tagger]$ python -m spacy download en  # Download spaCy's English language model files
+(env) [maxent-ner-tagger]$ pip install -r requirements.txt
 ```
 
 ### Run the tagger
@@ -41,13 +41,13 @@ Before running the code, you need to create a [virtual environment](https://virt
 To **(re-)run the tagger**, in the root directory of the project, run:
 
 ```
-(env)[maxent-ner-tagger]$ python scripts/name_tagger.py
+(env) [maxent-ner-tagger]$ python scripts/name_tagger.py
 ```
 
 You should start seeing output pretty much immediately. It takes about 5 minutes to regenerate the features and retrain the model. Please note that **all output files will be over-written** with each run.
 
 ```
-(env)[maxent-ner-tagger]$ python scripts/name_tagger.py
+(env) [maxent-ner-tagger]$ python scripts/name_tagger.py
 Generating train features...
 Lines processed:        0
 Lines processed:    10000
@@ -180,13 +180,13 @@ As a follow-up task, I worked on enhancing the named-entity tagger by adding [wo
 [Gensim](https://radimrehurek.com/gensim/) is a robust, open-source vector space modeling toolkit implemented in Python. To install, run:
 
 ```
-(env)[maxent-ner-tagger]$ pip install gensim
+(env) [maxent-ner-tagger]$ pip install gensim
 ```
 
 In order to use GloVe vectors with Gensim, we first have to convert the GloVe vectors to the [word2vec](https://code.google.com/archive/p/word2vec/) format it expects. Gensim provides a convencience script called [`glove2word2vec`](https://radimrehurek.com/gensim/scripts/glove2word2vec.html) to do just that:
 
 ```
-(env)[maxent-ner-tagger]$ python -m gensim.scripts.glove2word2vec --input data/glove/glove.6B.50d.txt --output data/word2vec/word2vec.6B.50d.txt
+(env) [maxent-ner-tagger]$ python -m gensim.scripts.glove2word2vec --input data/glove/glove.6B.50d.txt --output data/word2vec/word2vec.6B.50d.txt
 2018-04-03 15:45:37,757 - glove2word2vec - INFO - running /Users/.../env/lib/python3.6/site-packages/gensim/scripts/glove2word2vec.py --input data/glove/glove.6B.50d.txt --output data/word2vec/word2vec.6B.50d.txt
 2018-04-03 15:45:37,987 - glove2word2vec - INFO - converting 400000 vectors from data/glove/glove.6B.50d.txt to data/word2vec/word2vec.6B.50d.txt
 2018-04-03 15:45:38,660 - glove2word2vec - INFO - Converted model with 400000 vectors and 50 dimensions
@@ -199,21 +199,27 @@ Since the input and output files are relatively large, only the Glove and word2v
 The program can be run the same way as before:
 
 ```
-(env)[maxent-ner-tagger]$ python scripts/name_tagger.py
+(env) [maxent-ner-tagger]$ python scripts/name_tagger.py
 ```
 
-The number of dimensions is specified as a global variable at the top of the [`scripts/name_tagger.py`](https://github.com/melanietosik/maxent-ner-tagger/blob/master/scripts/name_tagger.py) file. Make sure you generate a `data/word2vec/` directory that contains at least one of the following files (`word2vec.6B.100d.txt`) before you run the program:
+The number of dimensions is specified as a global variable at the top of the [`scripts/name_tagger.py`](https://github.com/melanietosik/maxent-ner-tagger/blob/master/scripts/name_tagger.py) file. In addition, there is a flag to enable (mini-batch) [K-means clustering](http://scikit-learn.org/stable/modules/generated/sklearn.cluster.MiniBatchKMeans.html), which will cluster the high-dimensional word vectors into `k` clusters during training, and predict the closest cluster ID for each token vector at test time. I also implemented binarization of embeddings following [Guo et al. (2014)](http://aclweb.org/anthology/D/D14/D14-1012.pdf) but observed a significant drop in accuracy when using discrete binarization features instead of continuous word embeddings. Binarization is disabled in the current version of the name tagger.
+
+Make sure you generate a `data/word2vec/` directory that contains at least one of the following files (`word2vec.6B.100d.txt`) before you run the program:
 
 ```
-(env)[maxent-ner-tagger]$ ls data/word2vec
+(env) [maxent-ner-tagger]$ ls data/word2vec
 word2vec.6B.100d.txt word2vec.6B.200d.txt word2vec.6B.300d.txt word2vec.6B.50d.txt
 ```
 
-Again, you should start seeing output pretty much immediately. It takes about 8 minutes to load the vectors, regenerate the features, and retrain the model. Please note that **all output files will be over-written** with each run.
+Again, you should start seeing output pretty much immediately. It takes about 10 minutes to load and cluster the vectors, regenerate the features, and retrain the model. Please note that **all output files will be over-written** with each run.
 
 ```
-(env)[maxent-ner-tagger]$ python scripts/name_tagger.py
+(env) [maxent-ner-tagger]$ python scripts/name_tagger.py
 Loading word2vec file: data/word2vec/word2vec.6B.100d.txt
+
+Computing k=1000 clusters...
+/env/lib/python3.6/site-packages/sklearn/cluster/k_means_.py:1418: RuntimeWarning: init_size=300 should be larger than k=1000. Setting it to 3*k
+  init_size=init_size)
 
 Generating train features...
 Lines processed:        0
@@ -262,32 +268,31 @@ Lines processed:    50000
 Writing output file: CoNLL/CONLL_test.pos-chunk-name.feat.csv
 
 Training model...
-X (219554, 449594)
+X (219554, 453472)
 y (219554,)
 
 Tagging dev...
-X (55044, 449594)
+X (55044, 453472)
 y (55044,)
 
 Writing output file: output/dev.name
 
 Tagging test...
-X (50350, 449594)
+X (50350, 453472)
 y (50350,)
 
 Writing output file: output/test.name
 
 Scoring development set...
-50767 out of 51578 tags correct
-  accuracy: 98.43
+50822 out of 51578 tags correct
+  accuracy: 98.53
 5917 groups in key
-6074 groups in response
-5355 correct groups
-  precision: 88.16
-  recall:    90.50
-  F1:        89.32
-
-python scripts/name_tagger.py  493.26s user 27.88s system 104% cpu 8:18.47 total
+6045 groups in response
+5397 correct groups
+  precision: 89.28
+  recall:    91.21
+  F1:        90.24
+python scripts/name_tagger.py  733.91s user 22.76s system 101% cpu 12:22.47 total
 ```
 
 ### Results
@@ -299,7 +304,7 @@ As before, I tested the effect of adding the word vectors on the development set
 - `shape_`
 - `prefix_`, `suffix_`
 
-I addition, I tried word vectors of varying dimensionality (`50d`, `100d`, `200d`, `300d`), with and without including word vectors for context tokens.
+I addition, I first tried word vectors of varying dimensionality (`50d`, `100d`, `200d`, `300d`), with and without including word vectors for context tokens.
 
 | Feature set                                                            |                            Accuracy |
 |:-----------------------------------------------------------------------|------------------------------------:|
@@ -311,3 +316,18 @@ I addition, I tried word vectors of varying dimensionality (`50d`, `100d`, `200d
 | CoNLL + best-performing token features + context + `100d` + context    | P: 86.41<br> R: 88.41<br> **F1: 87.39** |
 
 On the development set, F1 scores improved by 2 to 3 points over the baseline model when using 100-dimensional GloVe embeddings. Adding word vector features for context tokens as well worsened the results. The best model using CoNLL features, best-performing token features, context features, and token word embeddings resulted in a **F1 score of 89.32** on the development set.
+
+#### Binarization and clustering of embeddings
+
+As mentioned before, I also implemented and tested binarization and clustering of embeddings. The binarization results were significantly worse than just using word vectors as features directly. Clustering on the other hand improved the results even further, especially when also including the cluster IDs of context tokens as features for each current token. Again, please refer to the [`log.md`](https://github.com/melanietosik/maxent-ner-tagger/blob/master/log.md) file for additional results and experiments.
+
+| Feature set                                                                                 |                                Accuracy |
+|:--------------------------------------------------------------------------------------------|----------------------------------------:|
+| CoNLL + best-performing token features + context + `100d`                                   | P: 88.16<br> R: 90.50<br> **F1: 89.32** |
+| CoNLL + best-performing token features + context + `100d` + binarization                    | P: 84.93<br> R: 88.03<br> **F1: 86.46** |
+| CoNLL + best-performing token features + context + `50d` + binarization                     | P: 86.10<br> R: 88.39<br> **F1: 87.23** |
+| CoNLL + best-performing token features + context + kmeans `100d; k=1000`                    | P: 88.79<br> R: 90.05<br> **F1: 89.41** |
+| **CoNLL + best-performing token features + context + kmeans `100d; k=1000` + context**      | P: 89.28<br> R: 91.21<br> **F1: 90.24** |
+
+By using the original best-performing token features as well as `k=1000` clusters of the 100-dimensional GloVe input vectors combined with context features, I was able to achieve a final F1 score of **90.24** on the development set.
+

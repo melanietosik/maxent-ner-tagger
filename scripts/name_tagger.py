@@ -8,8 +8,11 @@ import spacy
 import score
 import settings
 
+from collections import defaultdict
+
 from gensim.models import KeyedVectors
 
+from sklearn.cluster import MiniBatchKMeans
 from sklearn.feature_extraction import DictVectorizer
 from sklearn.linear_model import LogisticRegression
 
@@ -19,6 +22,10 @@ nlp = spacy.load('en')
 
 global dims
 dims = 100
+
+# Enable clustering
+cluster = True
+k = 1000
 
 
 class FeatureBuilder:
@@ -74,6 +81,8 @@ class FeatureBuilder:
             # "right_edge",
 
             "wv",
+            # "binarize",
+            "cluster_id",
         ]
 
         assert(len(self.sent) == len(self.doc))
@@ -83,41 +92,13 @@ class FeatureBuilder:
             for tok in self.doc:
                 getattr(self, x)(tok)
 
-        # # Hack for handling vector features
-        # if "wv" in self.use:
-        #     self.use.remove("wv")
-        #     for i in range(dims):
-        #         self.use.append("wv_{0}".format(i))
-
         # Add context token features
         for tok in self.doc:
 
             for x in self.use:
 
-                # Hack for handling vector features
-                if x.startswith("wv"):
-
-                    # # Token - 1
-                    # if tok.i == 0:
-                    #     self.feat[tok.i]["prev-1_" + x] = 0.0
-                    # else:
-                    #     self.feat[tok.i]["prev-1_" + x] = self.feat[tok.i - 1][x]
-                    # # Token - 2
-                    # if (tok.i == 0) or (tok.i == 1):
-                    #     self.feat[tok.i]["prev-2_" + x] = 0.0
-                    # else:
-                    #     self.feat[tok.i]["prev-2_" + x] = self.feat[tok.i - 2][x]
-                    # # Token + 1
-                    # if tok.i == len(self.sent) - 1:
-                    #     self.feat[tok.i]["next+1_" + x] = 0.0
-                    # else:
-                    #     self.feat[tok.i]["next+1_" + x] = self.feat[tok.i + 1][x]
-                    # # Token + 2
-                    # if (tok.i == len(self.sent) - 2) or (tok.i == len(self.sent) - 1):
-                    #     self.feat[tok.i]["next+2_" + x] = 0.0
-                    # else:
-                    #     self.feat[tok.i]["next+2_" + x] = self.feat[tok.i + 2][x]
-
+                # No context features for high-dimensional vector features
+                if x.startswith(("wv", "binarize")):
                     continue
 
                 # Token - 1
@@ -294,9 +275,51 @@ class FeatureBuilder:
             vec = wv[tok.lower_]
         else:
             vec = np.zeros(dims)
+
         # Generate one numerical feature per dimension
         for idx in range(dims):
             self.feat[tok.i]["wv_{0}".format(idx)] = float(vec[idx])
+
+    def binarize(self, tok):
+        """
+        GloVe word embeddings (binarization)
+        """
+        if tok.lower_ in wv.vocab:
+
+            vec = wv[tok.lower_]
+
+            mean_pos = vec[vec > 0].mean()  # mean(C_i+)
+            mean_neg = vec[vec < 0].mean()  # mean(C_i-)
+
+            # Set one string feature per dimension
+            for idx in range(dims):
+
+                if vec[idx] > mean_pos:
+                    self.feat[tok.i]["bin_{0}".format(idx)] = "pos"
+                elif vec[idx] < mean_neg:
+                    self.feat[tok.i]["bin_{0}".format(idx)] = "neg"
+                else:
+                    self.feat[tok.i]["bin_{0}".format(idx)] = "zero"
+        else:
+            # Set out-of-vocabulary (OOV) flag
+            for idx in range(dims):
+                self.feat[tok.i]["bin_{0}".format(idx)] = "oov"
+
+    def cluster_id(self, tok):
+        """
+        GloVe word embeddings (K-means clustering)
+        """
+        if tok.lower_ in wv.vocab:
+
+            # Get vector and cluster ID/label
+            vec = wv[tok.lower_]
+            label = kmeans.predict([vec])
+
+            self.feat[tok.i]["cluster_id"] = str(label)
+
+        else:
+            # Set out-of-vocabulary (OOV) flag
+            self.feat[tok.i]["cluster_id"] = "oov"
 
 
 def build_features(split):
@@ -380,6 +403,11 @@ def train():
     X_train = vec.fit_transform(df[features].to_dict("records"))
     y_train = df[label].values
 
+    # Write list of feature names
+    with open(settings.FEATURE_NAMES_FP, "w") as out:
+        for feat in vec.feature_names_:
+            out.write(feat + "\n")
+
     print("Training model...")
     print("X", X_train.shape)
     print("y", y_train.shape)
@@ -451,9 +479,30 @@ def main():
     global wv
     wv = KeyedVectors.load_word2vec_format(wv_fp, binary=False)
 
+    # Cluster word vectors
+    if cluster:
+
+        print("Computing k={0} clusters...".format(k))
+
+        global kmeans
+        kmeans = MiniBatchKMeans(
+            n_clusters=k,
+            random_state=0,
+        ).fit(wv.vectors)
+
+        # # Inspect clusters
+        # clusters = defaultdict(list)
+        # for tok, i in zip(wv.vocab, kmeans.labels_):
+        #     clusters[i].append(tok)
+
+        # for i in :
+        #     print(clusters[i])
+        #     input()
+
     # Build features for each data split
     for split in ("train", "dev", "test"):
         build_features(split)
+    # build_features("dev")
 
     # Train model
     train()
