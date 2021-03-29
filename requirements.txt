@@ -33,7 +33,7 @@ plac==0.9.6
 preshed==1.0.0
 prompt-toolkit==1.0.15
 ptyprocess==0.5.2
-Pygments==2.2.0
+Pygments==2.7.4
 python-dateutil==2.6.1
 pytz==2018.3
 regex==2017.4.5
